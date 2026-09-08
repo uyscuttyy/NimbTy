@@ -18,7 +18,25 @@ Phases 2–10 (see project-plan.md). All bounty/worker/review/dispute/reputation
 
 ## Commands
 - `npm run build` (gate), `npx prisma migrate status`, `npx prisma studio`
+- API suites: `npx tsx scripts/phase2-test.mts` (needs NIMIQ_NETWORK=mainnet for live checks),
+  `node scripts/phase3-test.cjs`, `node scripts/phase47-test.cjs` (dev server on :3000)
 - Dev wallet: NEXT_PUBLIC_ALLOW_DEV_WALLET=true (local only, never prod).
+
+## Local test state (this machine)
+- Postgres `nimbty` DB migrated (2 migrations). `.env` holds a THROWAWAY local escrow keypair
+  (NQ12 EL40…) — test funds only, never use on mainnet; generate a fresh one for testnet demo.
+- Dev server: `npm run dev` → :3000. Suites leave test bounties in DB (harness-funded, labeled sender "harness").
+
+## Phase 10 runbook (needs a human)
+1. Fresh testnet escrow keypair: `node -e "console.log(require('@nimiq/core').KeyPair.generate().privateKey.toHex())"`.
+   Fund it via the Nimiq testnet faucet (faucet needs a manual claim).
+2. Run a testnet node with RPC enabled (no public testnet RPC exists):
+   `docker run ... ghcr.io/nimiq/core-rs-albatross` with `consensus.network="test-albatross"` + `[rpc]` section;
+   set NIMIQ_RPC_URL to it, NIMIQ_NETWORK=testnet.
+3. Set ALLOW_UNVERIFIED_WALLET_LOGIN=false, NEXT_PUBLIC_ALLOW_DEV_WALLET=false. Real wallets only.
+4. Creator: post → FUND & POST → pay escrow + memo from wallet → I'VE PAID → BOUNTY LIVE.
+5. Worker (second wallet): claim → submit → creator approves → cron pays out → profile updates.
+6. Also demo: revision, dispute, and review-timeout auto-settlement.
 
 ## Limitations
 - Escrow is a custodial testnet account, not a contract (Nimiq L1 has no general VM). All moves audit-logged.

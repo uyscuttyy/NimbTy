@@ -7,3 +7,11 @@
 - Settlement: outbox table + cron endpoint; idempotent via status-guarded updateMany; never setTimeout.
 - Protected deliverables: served only through status-checking endpoint; released on PAID/WORKER_PAID, never on CREATOR_REFUNDED. Frontend hiding ≠ security.
 - Live-data rule: every displayed number derives from DB/payment state. Seed data isolated + labeled + removable.
+- @nimiq/core 2.21 findings (verified empirically): Address.fromPublicKeys ignores input (returns constant);
+  use Blake2b-256(pubkey)[:20] instead. KeyPair.toAddress() correct. tx.sign needs KeyPair (not PrivateKey).
+  tx.hash() returns hex string directly. tx.verify(protocol_version, network_id) returns void, throws on invalid.
+- Public RPC (rpc.nimiqwatch.com) tx shape uses from/to/senderData/recipientData, NOT sender/recipient/data;
+  normalizeTransaction covers both. Unknown hash → RPC "Internal error", handled as not-found.
+- No public TESTNET RPC exists (probed 6 candidates). Testnet = operator node via NIMIQ_RPC_URL.
+- Vercel Cron sends GET + Bearer CRON_SECRET automatically; route accepts GET+POST, header or ?secret=.
+- Dev-server note: never pipe `npm run dev` through `head` (SIGPIPE kills it); redirect to a log file.
