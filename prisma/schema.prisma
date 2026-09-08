@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Currency {
+  NIM
+  USDT
+}
+
+enum BountyStatus {
+  DRAFT
+  FUNDING
+  FUNDED
+  OPEN
+  CLAIMED
+  SUBMITTED
+  REVISION_REQUESTED
+  DISPUTED
+  PAID
+  WORKER_PAID
+  CREATOR_REFUNDED
+  EXPIRED_REFUNDED
+  CANCELLED
+}
+
+enum ClaimStatus {
+  ACTIVE
+  WORK_COMPLETED
+  ABANDONED
+}
+
+enum SubmissionStatus {
+  PENDING_REVIEW
+  REVISION_REQUESTED
+  APPROVED
+  DISPUTED
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED
+}
+
+enum DisputeResolution {
+  WORKER_WINS
+  CREATOR_WINS
+}
+
+enum DisputeOpenedBy {
+  CREATOR
+  WORKER
+}
+
+enum PaymentKind {
+  ESCROW_FUNDING
+  WORKER_PAYOUT
+  CREATOR_REFUND
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  DONE
+  FAILED_PERMANENT
+}
+
+enum ProofItemType {
+  TEXT
+  LINK
+  IMAGE
+  FILE
+}
+
+model User {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique
+  displayName   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  bounties    Bounty[]     @relation("CreatorBounties")
+  claims      Claim[]
+  submissions Submission[]
+  disputes    Dispute[]
+  reputation  Reputation?
+  streak      Streak?
+}
+
+model Bounty {
+  id           String       @id @default(cuid())
+  publicId     String       @unique
+  creatorId    String
+  creator      User         @relation("CreatorBounties", fields: [creatorId], references: [id])
+  title        String
+  description  String
+  rewardAmount Decimal      @db.Decimal(20, 4)
+  currency     Currency     @default(NIM)
+  deadlineAt   DateTime
+  reviewHours  Int          @default(12)
+  status       BountyStatus @default(DRAFT)
+
+  escrowAddress String?
+  fundingTxHash String?
+
+  fundedAt  DateTime?
+  settledAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  claims      Claim[]
+  submissions Submission[]
+  disputes    Dispute[]
+  payments    Payment[]
+  jobs        SettlementJob[]
+
+  @@index([status, deadlineAt])
+  @@index([status, createdAt])
+}
+
+model Claim {
+  id        String      @id @default(cuid())
+  bountyId  String
+  bounty    Bounty      @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  workerId  String
+  worker    User        @relation(fields: [workerId], references: [id])
+  status    ClaimStatus @default(ACTIVE)
+  claimedAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  submissions Submission[]
+
+  @@unique([bountyId, workerId])
+  @@index([workerId, status])
+}
+
+model Submission {
+  id               String           @id @default(cuid())
+  bountyId         String
+  bounty           Bounty           @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  claimId          String
+  claim            Claim            @relation(fields: [claimId], references: [id])
+  workerId         String
+  worker           User             @relation(fields: [workerId], references: [id])
+  summary          String
+  proofItems       Json
+  finalDeliverable Json?
+  revisionNumber   Int              @default(0)
+  status           SubmissionStatus @default(PENDING_REVIEW)
+  reviewNote       String?
+  reviewDeadlineAt DateTime
+  submittedAt      DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([status, reviewDeadlineAt])
+  @@index([bountyId, status])
+}
+
+model Dispute {
+  id             String             @id @default(cuid())
+  bountyId       String
+  bounty         Bounty             @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  submissionId   String?
+  openedById     String
+  openedBy       User               @relation(fields: [openedById], references: [id])
+  openedByRole   DisputeOpenedBy
+  reason         String
+  evidence       Json?
+  status         DisputeStatus      @default(OPEN)
+  resolution     DisputeResolution?
+  resolutionNote String?
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([status])
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  bountyId        String
+  bounty          Bounty        @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  kind            PaymentKind
+  sender          String?
+  recipient       String?
+  amount          Decimal       @db.Decimal(20, 4)
+  currency        Currency
+  transactionHash String?
+  status          PaymentStatus @default(PENDING)
+  confirmedAt     DateTime?
+  chainMeta       Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([bountyId, kind])
+  @@index([status])
+}
+
+model Reputation {
+  userId          String   @id
+  user            User     @relation(fields: [userId], references: [id])
+  bountiesPosted  Int      @default(0)
+  bountiesFunded  Int      @default(0)
+  bountiesPaid    Int      @default(0)
+  completed       Int      @default(0)
+  submitted       Int      @default(0)
+  approvals       Int      @default(0)
+  earned          Decimal  @default(0) @db.Decimal(20, 4)
+  paid            Decimal  @default(0) @db.Decimal(20, 4)
+  disputesOpened  Int      @default(0)
+  disputesAgainst Int      @default(0)
+  disputesLost    Int      @default(0)
+  updatedAt       DateTime @updatedAt
+}
+
+model Streak {
+  userId          String    @id
+  user            User      @relation(fields: [userId], references: [id])
+  current         Int       @default(0)
+  longest         Int       @default(0)
+  lastCompletedOn DateTime?
+  updatedAt       DateTime  @updatedAt
+}
+
+model SettlementJob {
+  id        String    @id @default(cuid())
+  bountyId  String?
+  bounty    Bounty?   @relation(fields: [bountyId], references: [id])
+  kind      String
+  payload   Json
+  status    JobStatus @default(QUEUED)
+  attempts  Int       @default(0)
+  lastError String?
+  runAt     DateTime  @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([status, runAt])
+}
+
+model AuthNonce {
+  id            String    @id @default(cuid())
+  walletAddress String
+  nonce         String    @unique
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+}
