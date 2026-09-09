@@ -125,6 +125,31 @@ async function handlePayout(payload: { paymentId: string; to: string; rail: "rel
   const payment = await prisma.payment.findUnique({ where: { id: payload.paymentId } });
   if (!payment) return;
   if (payment.status === "CONFIRMED") return; // already broadcast — idempotent
+  // Execution-time guard: never pay for a bounty whose funding isn't proven
+  // on-chain. (Stale/dev rows must never move real money.)
+  const bounty = await prisma.bounty.findUnique({ where: { id: payment.bountyId } });
+  if (!bounty || !["PAID", "WORKER_PAID", "CREATOR_REFUNDED", "EXPIRED_REFUNDED"].includes(bounty.status))
+    throw new Error(`PAYOUT_BOUNTY_NOT_PAYABLE: bounty ${payment.bountyId} is ${bounty?.status ?? "missing"}`);
+  const funding = await prisma.payment.findFirst({
+    where: { bountyId: payment.bountyId, kind: "ESCROW_FUNDING", status: "CONFIRMED" },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!funding?.transactionHash) throw new Error("PAYOUT_FUNDING_UNPROVEN: no confirmed funding payment");
+  try {
+    const v = await paymentService.verifyTransaction({
+      request: {
+        bountyId: bounty.id, publicId: bounty.publicId,
+        amount: bounty.rewardAmount.toString(), currency: bounty.currency,
+        payTo: process.env.ESCROW_ACCOUNT_ADDRESS ?? "", memo: `nimbty:${bounty.publicId}`,
+        expiresAt: new Date().toISOString(),
+      },
+      txHash: funding.transactionHash,
+    });
+    if (!v.verified) throw new Error("PAYOUT_FUNDING_UNPROVEN: funding tx does not verify on-chain");
+  } catch (e) {
+    if (e instanceof RpcUnavailableError) throw e; // retry later
+    throw e instanceof Error && e.message.startsWith("PAYOUT_") ? e : new Error(`PAYOUT_FUNDING_UNPROVEN: ${(e as Error).message}`);
+  }
   try {
     const res = payment.kind === "CREATOR_REFUND"
       ? await paymentService.refundCreator(payment.bountyId, payload.to)

@@ -21,7 +21,13 @@ Stack: Next.js 15 App Router + TS, Postgres + Prisma (11 models + reviewNote), T
 - `npm run build` green (18/18). Suites: scripts/phase2-test.mts, phase3-test.cjs, phase47-test.cjs — all PASS.
 - Live mainnet RPC reads; funding-expiry + payout-retry behavior observed on dev server.
 
-## Blockers
-- Phase 10 needs, on testnet: (1) a reachable JSON-RPC node (no public one exists — operator runs `nimiq-client`),
-  (2) funded testnet wallets (escrow + creator + worker via the testnet faucet), (3) a human demo run.
-  None are obtainable headlessly from here. Server code paths are chain-proven on mainnet reads.
+## Live testnet proof (09-SEP-26, TestAlbatross via rpc.testnet.nimiqwatch.com)
+- B1 (5 NIM happy path): fund tx c3e4e7e4 @10974220 → OPEN → claim → submit → approve → PAID → escrow paid worker exactly 5.00 NIM. FULL LOOP PROVEN.
+- B2 (3 NIM dispute): fund tx 42a08f6e @10975733 → claim → submit → dispute → arbiter WORKER_WINS → WORKER_PAID → worker +3.00 NIM.
+- B3 (2 NIM review-expiry): funded @10975788, submitted, creator silent — auto-settle pending (~11:13Z).
+- Worker profile: completed 2, earned 8, approval 67%, streak 1 — all from chain-backed rows.
+- Escrow fee float: payouts cost fee-on-top, so escrow needs a float (12 NIM seeded from creator).
+  Execution-time guard added: payouts refuse unless bounty funding verifies on-chain (a stale dev
+  job paid 3 testnet NIM to a throwaway address before the guard — testnet-only, my oversight).
+- Nimiq Pay insight: Pay wallets route through HTLC contracts; sender binding uses relatedAddresses
+  fallback with memo as the binder (matchesFunding + 8 unit tests).
