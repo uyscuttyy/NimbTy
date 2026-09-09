@@ -9,15 +9,6 @@ export function ConnectWalletButton() {
 
   return (
     <div className="flex flex-col items-end gap-1">
-      {error && (
-        <button
-          onClick={() => { clearError(); }}
-          role="alert"
-          className="max-w-[260px] rounded-xl bg-rose-50 px-3 py-1.5 text-left text-xs text-rose-700 ring-1 ring-rose-200"
-        >
-          {error} <span className="underline">dismiss</span>
-        </button>
-      )}
       <div className="flex min-h-touch items-center gap-2">
         {status === "loading" && <span className="text-sm text-slate2">…</span>}
 
@@ -45,6 +36,15 @@ export function ConnectWalletButton() {
           </button>
         )}
       </div>
+      {error && (
+        <button
+          onClick={() => { clearError(); }}
+          role="alert"
+          className="max-w-[78vw] rounded-xl bg-rose-50 px-3 py-1.5 text-left text-xs text-rose-700 ring-1 ring-rose-200 sm:max-w-[320px]"
+        >
+          {error} <span className="underline">dismiss</span>
+        </button>
+      )}
     </div>
   );
 }

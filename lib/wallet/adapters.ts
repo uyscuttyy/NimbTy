@@ -1,69 +1,54 @@
-import { WalletAdapter, WalletError, toHex } from "./types";
+"use client";
+import HubApi from "@nimiq/hub-api";
+import type { WalletAdapter } from "./types";
+import { WalletError, toHex } from "./types";
 
-/* ────────────────────────── Nimiq Hub adapter (desktop, real) ─────────────
- * Uses the official @nimiq/hub-api PRECISELY WHEN it is installed.
- * Phase 2 pins the verified current published version. Until then the import
- * is runtime-guarded: without the package, this adapter reports
- * WALLET_UNAVAILABLE cleanly instead of breaking compilation. */
-let hubApi: any = null;
-let hubAddress: string | null = null;
-
-async function loadHubModule(): Promise<any> {
-  // Variable specifier + webpackIgnore → webpack emits a native dynamic import
-  // and does NOT try to resolve the bare specifier at build time. If the
-  // package isn't installed, the browser rejects it and we surface WalletError.
-  const spec = "@nimiq/hub-api";
-  return await import(/* webpackIgnore: true */ spec);
+function hubEndpoint(): string {
+  const custom = process.env.NEXT_PUBLIC_HUB_BASE_URL;
+  if (custom) return custom;
+  return process.env.NEXT_PUBLIC_NIMIQ_NETWORK === "mainnet"
+    ? "https://hub.nimiq.com"
+    : "https://hub.nimiq-testnet.com";
 }
 
-async function getHub(): Promise<any> {
-  if (hubApi) return hubApi;
-  const mod = await loadHubModule(); // throws if not installed
-  const endpoint =
-    process.env.NEXT_PUBLIC_HUB_BASE_URL ||
-    (process.env.NEXT_PUBLIC_NIMIQ_NETWORK === "mainnet"
-      ? "https://hub.nimiq.com"
-      : "https://hub.nimiq-testnet.com");
-  const HubApi = mod.default ?? mod;
-  hubApi = new HubApi(endpoint);
-  return hubApi;
+let hub: InstanceType<typeof HubApi> | null = null;
+function getHub(): InstanceType<typeof HubApi> {
+  if (!hub) hub = new HubApi(hubEndpoint());
+  return hub;
 }
 
+/* ────────────────────────── Nimiq Hub adapter (real) ─────────────────────
+ * Popup flow (desktop + mobile Chrome). Signing happens inside the Hub, so
+ * the phone browser needs NO WebCrypto Ed25519 — this is the mobile path.
+ * Server verifies the signature AND binds pubkey→address (strict, Phase 2). */
 export const hubAdapter: WalletAdapter = {
   id: "hub",
   label: "Nimiq Hub",
-  isAvailable: () => true,
+  isAvailable: () => typeof window !== "undefined",
   async connect() {
-    let hub: any;
     try {
-      hub = await getHub();
-    } catch {
-      throw new WalletError("WALLET_UNAVAILABLE",
-        "Nimiq Hub adapter isn't installed yet (pinned in Phase 2). Use the dev wallet for local development.");
-    }
-    try {
-      const res = await hub.signIn();
-      hubAddress = res.address ?? res?.account?.addresses?.[0];
-      if (!hubAddress) throw new Error("no address in sign-in result");
-      return { walletAddress: hubAddress };
-    } catch (e: any) {
+      const res = await getHub().chooseAddress({ appName: "NimbTy" });
+      if (!res?.address) throw new Error("no address in Hub result");
+      return { walletAddress: res.address };
+    } catch (e: unknown) {
       if (e instanceof WalletError) throw e;
-      if (e?.message?.toLowerCase?.().includes("cancel") || e?.code === 3)
+      const msg = e instanceof Error ? e.message : "";
+      if (msg.toLowerCase().includes("cancel") || (e as { code?: number })?.code === 3)
         throw new WalletError("WALLET_REJECTED", "No problem — you closed the wallet.");
-      throw new WalletError("WALLET_UNAVAILABLE", "Could not reach Nimiq Hub. Is your popup blocker on?");
+      throw new WalletError("WALLET_UNAVAILABLE", "Could not reach Nimiq Hub. Check your connection and try again.");
     }
   },
   async sign(message, walletAddress) {
-    const hub = await getHub().catch(() => null);
-    if (!hub) throw new WalletError("WALLET_UNAVAILABLE", "Nimiq Hub adapter isn't installed yet.");
-    const signer = walletAddress || hubAddress;
     try {
-      const r = await hub.signMessage({ signer, message });
-      const sig = typeof r.signature === "string" ? r.signature : toHex(new Uint8Array(r.signature));
-      const pub = typeof r.signerPubKey === "string" ? r.signerPubKey : toHex(new Uint8Array(r.signerPubKey));
-      if (!pub) throw new Error("signerPubKey missing from Hub result");
-      return { walletAddress: r.signer ?? signer, message, signatureHex: sig, pubKeyHex: pub };
-    } catch (e) {
+      const r = await getHub().signMessage({ appName: "NimbTy", signer: walletAddress, message });
+      if (!r) throw new WalletError("SIGNATURE_REJECTED", "The Hub closed without signing.");
+      return {
+        walletAddress: r.signer ?? walletAddress,
+        message,
+        signatureHex: toHex(r.signature),
+        pubKeyHex: toHex(r.signerPublicKey),
+      };
+    } catch (e: unknown) {
       if (e instanceof WalletError) throw e;
       throw new WalletError("SIGNATURE_REJECTED", "You declined to sign the login request.");
     }
@@ -113,13 +98,13 @@ export const devAdapter: WalletAdapter = {
 
 /* ────────────────────────── Nimiq Pay adapter (mobile) ──────────────────────
  * Deep-link round-trip signing can't complete synchronously in-page.
- * Interface exists now; the real Pay flow ships in Phase 2 with payments. */
+ * Hub popup is the mobile path for now. */
 export const payAdapter: WalletAdapter = {
   id: "pay",
-  label: "Nimiq Pay (coming with payments)",
+  label: "Nimiq Pay (via Hub)",
   isAvailable: () => false,
-  async connect() { throw new WalletError("PAY_MODE_PHASE_2", "Nimiq Pay sign-in ships with Phase 2 (payments). Use the Hub or dev wallet for now."); },
-  async sign() { throw new WalletError("PAY_MODE_PHASE_2", "Nimiq Pay sign-in ships in Phase 2."); },
+  async connect() { throw new WalletError("PAY_MODE_PHASE_2", "Use Nimiq Hub to connect on mobile."); },
+  async sign() { throw new WalletError("PAY_MODE_PHASE_2", "Use Nimiq Hub to connect on mobile."); },
 };
 
 export function pickAdapter(): WalletAdapter {
