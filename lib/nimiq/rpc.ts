@@ -132,7 +132,8 @@ export class NimiqRpc {
   /** Recent txs involving an address (newest first on most nodes). Null-safe. */
   async getTransactionsByAddress(address: string, max = 25): Promise<RpcTransaction[]> {
     try {
-      const txs = await this.call<RpcTransaction[]>("getTransactionsByAddress", [address, max]);
+      // NOTE: nodes require 3 params (address, max, startHash) — 2 params → Invalid params.
+      const txs = await this.call<RpcTransaction[]>("getTransactionsByAddress", [address, max, null]);
       return Array.isArray(txs) ? txs : [];
     } catch {
       return [];
