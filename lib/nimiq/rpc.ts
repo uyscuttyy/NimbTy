@@ -4,6 +4,7 @@
  * operator's node; mainnet falls back to the public rpc.nimiqwatch.com.
  * No public testnet RPC exists — testnet operators run one node (see handoff.md).
  */
+import { sameAddress } from "./keys";
 export class RpcError extends Error {
   constructor(public code: string, message: string) { super(message); this.name = "RpcError"; }
 }
@@ -39,6 +40,12 @@ export interface RpcTransaction {
   senderData?: string | null;
   recipientData?: string | null;
   validityStartHeight?: number;
+  // Nimiq Pay routes payments through HTLC contracts: on-chain `from` is the
+  // contract, NOT the user's wallet. relatedAddresses still names the wallet.
+  relatedAddresses?: string[];
+  flags?: number; // 1 = contract creation (never a funding payment)
+  fromType?: number;
+  toType?: number; // 2 = contract address
 }
 
 export interface NormalizedTransaction {
@@ -48,6 +55,8 @@ export interface NormalizedTransaction {
   valueLuna: bigint;
   blockNumber: number | null;
   memoText: string;
+  relatedAddresses: string[];
+  isContractCreation: boolean;
 }
 
 function dataToText(data: unknown): string {
@@ -71,7 +80,20 @@ export function normalizeTransaction(tx: RpcTransaction): NormalizedTransaction 
     valueLuna: BigInt(tx.value),
     blockNumber: tx.blockNumber ?? null,
     memoText: [dataToText(tx.data), dataToText(tx.senderData), dataToText(tx.recipientData)].join(" "),
+    relatedAddresses: Array.isArray(tx.relatedAddresses) ? tx.relatedAddresses : [],
+    isContractCreation: tx.flags === 1,
   };
+}
+
+/**
+ * Does this on-chain tx belong to `wallet`? Direct match first (fast path),
+ * then relatedAddresses fallback for HTLC-routed Nimiq Pay payments.
+ * relatedAddresses is involvement, not authorization — always pair with memo+amount.
+ */
+export function txInvolvesWallet(tx: NormalizedTransaction, wallet: string): boolean {
+  if (!wallet) return false;
+  if (sameAddress(tx.sender, wallet)) return true;
+  return tx.relatedAddresses.some((a) => sameAddress(a, wallet));
 }
 
 export interface RpcAccount {

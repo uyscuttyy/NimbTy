@@ -3,7 +3,6 @@ import { requireUser, AuthError } from "@/lib/auth/session";
 import { tryTransition } from "@/lib/bounty/state-machine";
 import { paymentService } from "@/lib/payments/nimbty-nimiq.service";
 import { RpcUnavailableError } from "@/lib/nimiq/rpc";
-import { sameAddress } from "@/lib/nimiq/keys";
 import { apiError, apiOk, serializeBounty } from "@/lib/api/route-helpers";
 
 const FUNDING_WINDOW_MS = 35 * 60 * 1000;
@@ -101,22 +100,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ publicI
     if (!v.verified && !txHash && detect)
       return apiError("FUNDING_NOT_FOUND", "No matching payment found at the escrow address yet. Pay first, wait for confirmation, then retry.", 422);
     if (!v.verified) {
-      if (v.sender && !sameAddress(v.sender, bounty.creator.walletAddress))
+      // Sender binding covers HTLC-routed Nimiq Pay payments via relatedAddresses.
+      if (!v.senderOk)
         return apiError("FUNDING_WRONG_SENDER", "That transaction wasn't sent from your wallet.", 422);
       return apiError("FUNDING_UNVERIFIED", "That transaction doesn't match this bounty yet (wrong amount, recipient, memo, or not yet mined).", 422,
         { amountOk: v.amountOk, recipientOk: v.recipientOk, blockHeight: v.blockHeight ?? null });
     }
-    if (!sameAddress(v.sender, bounty.creator.walletAddress))
-      return apiError("FUNDING_WRONG_SENDER", "That transaction wasn't sent from your wallet.", 422);
+
+    const confirmedHash = txHash ?? v.txHash;
+    if (!confirmedHash) return apiError("FUNDING_UNVERIFIED", "No transaction to confirm.", 422);
 
     const updated = await prisma.$transaction(async (tx) => {
       const toFunded = await tryTransition(tx, bounty.id, "FUNDING", "FUNDED", {
-        fundingTxHash: txHash, fundedAt: new Date(),
+        fundingTxHash: confirmedHash, fundedAt: new Date(),
       });
       if (!toFunded) return null;
       await tx.payment.update({
         where: { id: payment.id },
-        data: { transactionHash: txHash, status: "CONFIRMED", confirmedAt: new Date(), chainMeta: { blockHeight: v.blockHeight, sender: v.sender } },
+        data: { transactionHash: confirmedHash, status: "CONFIRMED", confirmedAt: new Date(), chainMeta: { blockHeight: v.blockHeight, sender: v.sender } },
       });
       await tx.settlementJob.deleteMany({ where: { bountyId: bounty.id, kind: "FUNDING_EXPIRED", status: "QUEUED" } });
       // FUNDED→OPEN is automatic once money is verified (spec §18).

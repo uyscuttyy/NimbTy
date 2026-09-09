@@ -11,15 +11,19 @@ Auth: wallet-signed challenge → HMAC httpOnly session. No passwords, no keys s
 - Protected deliverables served only via `/api/submissions/[id]/deliverable`, gated on PAID/WORKER_PAID.
 
 ## Nimiq integration (real, verified)
-- `lib/nimiq/rpc.ts`: JSON-RPC client. Mainnet defaults to public rpc.nimiqwatch.com (probed live).
-  No public testnet RPC exists → testnet operators set NIMIQ_RPC_URL (one node, see handoff).
-  Handles both node-style (`sender/recipient/data`) and proxy-style (`from/to/senderData`) tx shapes.
+- `lib/nimiq/rpc.ts`: JSON-RPC client. Testnet: https://rpc.testnet.nimiqwatch.com
+  (verified live); mainnet defaults to public rpc.nimiqwatch.com. Override via NIMIQ_RPC_URL.
+  Nodes want 3 params for address/block lookups. Handles both node-style
+  (`sender/recipient/data`) and proxy-style (`from/to/senderData`) tx shapes.
 - `lib/nimiq/keys.ts`: address↔pubkey binding (Blake2b-256[:20], verified vs SDK),
   IBAN checksum, offline payout signing. Network IDs from core-rs source: TestAlbatross=5, MainAlbatross=24.
   Note: `Address.fromPublicKeys` in @nimiq/core 2.21 ignores input — never use it.
 - `PaymentService`: verifyTransaction (recipient + Luna + memo + inclusion; autodetect via
   findFundingTransaction), releaseToWorker/refundCreator (local sign + sendRawTransaction).
-  Unverifiable = PENDING forever. USDT rail refuses honestly (no silent conversion).
+  Nimiq Pay pays out of HTLC contracts: sender binding = direct match then relatedAddresses
+  fallback (`txInvolvesWallet`), memo is the real binder, contract creations/refunds excluded
+  (`matchesFunding` + 8-case unit test). Unverifiable = PENDING forever.
+  USDT rail refuses honestly (no silent conversion).
 - Auth binding enforced in verify route (dev bypass only via ALLOW_UNVERIFIED_WALLET_LOGIN).
 
 ## Escrow (honest limitation, spec §34)

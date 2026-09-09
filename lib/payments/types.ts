@@ -14,6 +14,7 @@ export interface TransactionVerification {
   verified: boolean;
   amountOk: boolean;
   recipientOk: boolean;
+  senderOk: boolean;
   sender: string;
   txHash?: string;
   blockHeight?: number;

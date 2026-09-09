@@ -12,6 +12,13 @@
   tx.hash() returns hex string directly. tx.verify(protocol_version, network_id) returns void, throws on invalid.
 - Public RPC (rpc.nimiqwatch.com) tx shape uses from/to/senderData/recipientData, NOT sender/recipient/data;
   normalizeTransaction covers both. Unknown hash → RPC "Internal error", handled as not-found.
-- No public TESTNET RPC exists (probed 6 candidates). Testnet = operator node via NIMIQ_RPC_URL.
+- Testnet RPC: public https://rpc.testnet.nimiqwatch.com exists (user-provided, verified live).
+  Note its node wants 3 params for address/block lookups (address, max, startHash / number, includeBody).
 - Vercel Cron sends GET + Bearer CRON_SECRET automatically; route accepts GET+POST, header or ?secret=.
 - Dev-server note: never pipe `npm run dev` through `head` (SIGPIPE kills it); redirect to a log file.
+- Nimiq Pay sends from HTLC contracts, not the wallet (verified on TestAlbatross across 3 wallets).
+  getTransactionsByAddress only indexes literal from/to — user history misses Pay payments (they surface
+  under the contract). Fix: sender binding = direct match, then relatedAddresses fallback; memo in tx data
+  is the real binder; exclude contract creations (flags:1) and refunds from funding matches. Never resolve
+  contract owners via getAccountByAddress (pruned contracts read as basic). Pure predicate matchesFunding
+  + 8-case synthetic unit test (scripts/htlc-match-test.mts).
