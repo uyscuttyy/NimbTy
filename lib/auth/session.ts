@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 
-const COOKIE = "nimbty_session";
+const COOKIE = "nimbTy_session";
 const TTL_S = 30 * 24 * 3600; // 30 days
 
 function secret(): string {

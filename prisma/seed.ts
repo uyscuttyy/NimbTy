@@ -1,5 +1,5 @@
 /**
- * NimBty seed — DEV ONLY.
+ * NimbTy seed — DEV ONLY.
  * Refuses to run in production or unless ALLOW_SEED=true.
  * Marketplace seed data (demo bounties etc.) is added in Phase 7; the guard
  * and isolation ship now so no fake data can ever reach production.

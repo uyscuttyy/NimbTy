@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { tryTransition } from "@/lib/bounty/state-machine";
 import { applyWorkerPaid, queuePayout } from "@/lib/settlement/settle";
-import { paymentService } from "@/lib/payments/nimbty-nimiq.service";
+import { paymentService } from "@/lib/payments/nimbTy-nimiq.service";
 import { RpcUnavailableError } from "@/lib/nimiq/rpc";
 import { apiError, apiOk } from "@/lib/api/route-helpers";
 
@@ -140,7 +140,7 @@ async function handlePayout(payload: { paymentId: string; to: string; rail: "rel
       request: {
         bountyId: bounty.id, publicId: bounty.publicId,
         amount: bounty.rewardAmount.toString(), currency: bounty.currency,
-        payTo: process.env.ESCROW_ACCOUNT_ADDRESS ?? "", memo: `nimbty:${bounty.publicId}`,
+        payTo: process.env.ESCROW_ACCOUNT_ADDRESS ?? "", memo: `nimbTy:${bounty.publicId}`,
         expiresAt: new Date().toISOString(),
       },
       txHash: funding.transactionHash,

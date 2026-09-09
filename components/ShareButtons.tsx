@@ -5,11 +5,11 @@ export function ShareButtons({ publicId, title }: { publicId: string; title: str
   const [copied, setCopied] = useState(false);
   const path = `/n/${publicId}`;
   const url = typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
-  const text = `${title} — bounty on NimBty`;
+  const text = `${title} — bounty on NimbTy`;
 
   const share = async () => {
     if (navigator.share) {
-      try { await navigator.share({ title: "NimBty bounty", text, url }); } catch { /* dismissed */ }
+      try { await navigator.share({ title: "NimbTy bounty", text, url }); } catch { /* dismissed */ }
       return;
     }
     await copy();

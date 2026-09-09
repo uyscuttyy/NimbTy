@@ -1,6 +1,6 @@
-# NimBty — Tiny tasks. Real rewards.
+# NimbTy — Tiny tasks. Real rewards.
 
-Put a bounty on anything that needs doing. NimBty is a mobile-first micro-bounty
+Put a bounty on anything that needs doing. NimbTy is a mobile-first micro-bounty
 marketplace settled in real Nimiq payments: a creator funds the reward **before**
 work begins, the reward locks in escrow, a worker claims it, submits proof, and
 gets paid — no chasing payments, no disappearing clients.
@@ -43,7 +43,7 @@ CREATE BOUNTY → FUND (real Nimiq tx, verified on-chain) → REWARD LOCKED → 
   schedule). Review expiry auto-pays the worker; retries back off; jobs are
   idempotent so double-runs can't double-pay.
 - **Auth:** your wallet is your identity (signed challenge → httpOnly session).
-  NimBty never asks for seed phrases or private keys.
+  NimbTy never asks for seed phrases or private keys.
 
 > Honest limitation: Nimiq L1 has no general-purpose escrow VM, so the MVP
 > escrow is a dedicated testnet account whose every movement is audit-logged and
@@ -55,7 +55,7 @@ CREATE BOUNTY → FUND (real Nimiq tx, verified on-chain) → REWARD LOCKED → 
 
 1. `npm install`
 2. Start Postgres:
-   `docker run -d --name nimbty-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=nimbty -p 5432:5432 postgres:16`
+   `docker run -d --name nimbTy-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=nimbTy -p 5432:5432 postgres:16`
 3. `cp .env.example .env` — set `DATABASE_URL`, `SESSION_SECRET`, `CRON_SECRET`,
    `ARBITER_KEY`, plus Nimiq: `NIMIQ_RPC_URL` (testnet node; no public testnet
    RPC is bundled), `ESCROW_ACCOUNT_ADDRESS`, `ESCROW_ACCOUNT_PRIVATE_KEY`

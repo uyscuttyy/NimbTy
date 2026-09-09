@@ -1,4 +1,4 @@
-# NimBty — Memory (implementation decisions)
+# NimbTy — Memory (implementation decisions)
 
 - 08-SEP-26: Build was red (SessionProvider duplicate `walletAddress` key; zod missing from deps; env.ts cast). Fixed; build green. Lesson: scaffold compiled ≠ scaffold verified.
 - 08-SEP-26: No `/api/auth/session` route existed though SessionProvider fetched it. Added.

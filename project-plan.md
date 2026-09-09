@@ -1,4 +1,4 @@
-# NimBty — Project Plan
+# NimbTy — Project Plan
 
 ## Audit (Phase 0, 08-SEP-26) — DONE
 Stack: Next.js 15 App Router + TS, Postgres + Prisma (11 models + reviewNote), Tailwind v3, HMAC httpOnly sessions.

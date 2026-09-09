@@ -7,7 +7,7 @@ const NONCE_TTL_MS = 10 * 60 * 1000;
 // the client never gets to define what is signed (spec §36).
 export function buildSignMessage(walletAddress: string, nonce: string): string {
   return [
-    "Sign in to NimBty",
+    "Sign in to NimbTy",
     `Wallet: ${walletAddress}`,
     `Nonce: ${nonce}`,
     "This signature proves wallet ownership. It moves no funds.",

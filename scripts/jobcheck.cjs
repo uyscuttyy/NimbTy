@@ -1,4 +1,4 @@
-process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/nimbty";
+process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/nimbTy";
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 (async () => {

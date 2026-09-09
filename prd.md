@@ -1,6 +1,6 @@
-# NimBty — PRD (locked spec, condensed)
+# NimbTy — PRD (locked spec, condensed)
 
-Brand: NimBty — "Tiny tasks. Real rewards." / "Put a bounty on anything that needs doing."
+Brand: NimbTy — "Tiny tasks. Real rewards." / "Put a bounty on anything that needs doing."
 Mobile-first bounty marketplace on Nimiq Pay. No categories. Creator funds before work; reward locked; worker claims, submits proof; creator APPROVES / REQUESTS REVISION / DISPUTES; silence for 12h review → worker auto-paid.
 
 ## Flows

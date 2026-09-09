@@ -50,7 +50,7 @@ export function matchesFunding(tx: NormalizedTransaction, c: FundingCriteria): b
  * - Payouts are signed LOCALLY with the testnet escrow key and relayed via RPC.
  * - Anything unverifiable stays PENDING. Nothing is ever faked.
  */
-export class NimbtyNimiqService implements PaymentService {
+export class NimbTyNimiqService implements PaymentService {
   getEscrowAddress(): string {
     return requireEnv("ESCROW_ACCOUNT_ADDRESS");
   }
@@ -72,7 +72,7 @@ export class NimbtyNimiqService implements PaymentService {
       payTo: this.getEscrowAddress(),
       amount: input.amount,
       currency: input.currency,
-      memo: `nimbty:${input.publicId}`,
+      memo: `nimbTy:${input.publicId}`,
       expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
     };
   }
@@ -176,12 +176,12 @@ export class NimbtyNimiqService implements PaymentService {
       feeLuna,
       validityStartHeight: head,
       networkId: networkIdFor(env.NIMIQ_NETWORK),
-      memo: `nimbty:${bounty.publicId}:${kind === "WORKER_PAYOUT" ? "pay" : "refund"}`,
+      memo: `nimbTy:${bounty.publicId}:${kind === "WORKER_PAYOUT" ? "pay" : "refund"}`,
     });
     const hash = await rpc.sendRawTransaction(signed.rawHex);
     return { txHash: hash, status: "BROADCAST" };
   }
 }
 
-export const paymentService = new NimbtyNimiqService();
+export const paymentService = new NimbTyNimiqService();
 export { RpcUnavailableError };

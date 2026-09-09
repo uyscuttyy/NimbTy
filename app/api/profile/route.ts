@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   let isOwn = false;
   if (wallet) {
     const other = await prisma.user.findUnique({ where: { walletAddress: wallet } });
-    if (!other) return apiError("UNKNOWN_USER", "No NimBty profile for that wallet.", 404);
+    if (!other) return apiError("UNKNOWN_USER", "No NimbTy profile for that wallet.", 404);
     userId = other.id;
     isOwn = me?.id === other.id;
   } else {
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
 }
 
 function hunterTitle(completed: number): string {
-  if (completed >= 60) return "NimBty Legend";
+  if (completed >= 60) return "NimbTy Legend";
   if (completed >= 30) return "Bounty Beast";
   if (completed >= 15) return "Task Hunter";
   if (completed >= 5) return "Bounty Rookie";

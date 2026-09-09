@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { requireUser, AuthError } from "@/lib/auth/session";
 import { tryTransition } from "@/lib/bounty/state-machine";
-import { paymentService } from "@/lib/payments/nimbty-nimiq.service";
+import { paymentService } from "@/lib/payments/nimbTy-nimiq.service";
 import { RpcUnavailableError } from "@/lib/nimiq/rpc";
 import { apiError, apiOk, serializeBounty } from "@/lib/api/route-helpers";
 

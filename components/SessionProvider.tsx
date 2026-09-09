@@ -35,7 +35,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setStatus(d.user ? "connected" : "disconnected");
     } catch {
       setStatus("disconnected");
-      setError("Network unavailable — can't reach NimBty.");
+      setError("Network unavailable — can't reach NimbTy.");
     }
   }, []);
 

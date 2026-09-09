@@ -1,4 +1,4 @@
-# NimBty — Architecture (as implemented)
+# NimbTy — Architecture (as implemented)
 
 Next.js 15 App Router + TS · Postgres + Prisma (11 models) · Tailwind v3 (Fredoka + Nunito Sans)
 Auth: wallet-signed challenge → HMAC httpOnly session. No passwords, no keys stored.

@@ -1,4 +1,4 @@
-# NimBty — Handoff
+# NimbTy — Handoff
 
 ## What works (verified)
 - `npm run build` green (Next 15, fixed SessionProvider, added zod).
@@ -10,7 +10,7 @@ Phases 2–10 (see project-plan.md). All bounty/worker/review/dispute/reputation
 
 ## Run it
 1. `npm install`
-2. Postgres: `docker run -d --name nimbty-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=nimbty -p 5432:5432 postgres:16`
+2. Postgres: `docker run -d --name nimbTy-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=nimbTy -p 5432:5432 postgres:16`
 3. `cp .env.example .env`, set DATABASE_URL, SESSION_SECRET (64-hex), CRON_SECRET, ARBITER_KEY.
 4. Nimiq: NIMIQ_RPC_URL (testnet RPC), ESCROW_ACCOUNT_ADDRESS, ESCROW_ACCOUNT_PRIVATE_KEY (testnet only), NEXT_PUBLIC_HUB_BASE_URL.
 5. `npx prisma migrate deploy && npm run dev` → http://localhost:3000
@@ -23,7 +23,7 @@ Phases 2–10 (see project-plan.md). All bounty/worker/review/dispute/reputation
 - Dev wallet: NEXT_PUBLIC_ALLOW_DEV_WALLET=true (local only, never prod).
 
 ## Local test state (this machine)
-- Postgres `nimbty` DB migrated (2 migrations). `.env` holds a THROWAWAY local escrow keypair
+- Postgres `nimbTy` DB migrated (2 migrations). `.env` holds a THROWAWAY local escrow keypair
   (NQ12 EL40…) — test funds only, never use on mainnet; generate a fresh one for testnet demo.
 - Dev server: `npm run dev` → :3000. Suites leave test bounties in DB (harness-funded, labeled sender "harness").
 

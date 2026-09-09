@@ -7,7 +7,7 @@ export const LEVELS = [
   { name: "Bounty Rookie", min: 5 },
   { name: "Task Hunter",   min: 15 },
   { name: "Bounty Beast",  min: 30 },
-  { name: "NimBty Pro",    min: 60 },
+  { name: "NimbTy Pro",    min: 60 },
 ] as const;
 
 export interface LevelInfo {

@@ -27,7 +27,7 @@ async function main() {
   const s = signPayout({
     escrowPrivateKeyHex: kp.privateKey.toHex(), toAddress: worker,
     valueLuna: nimToLuna("5"), feeLuna: 500n,
-    validityStartHeight: 100, networkId: 5, memo: "nimbty:abc123",
+    validityStartHeight: 100, networkId: 5, memo: "nimbTy:abc123",
   });
   const tx = N.Transaction.deserialize(Buffer.from(s.rawHex, "hex"));
   console.log("payout hash match:", tx.hash() === s.txHash, "| value:", tx.value.toString());
@@ -37,7 +37,7 @@ async function main() {
   catch (e) { console.log("verify(2,999) threw as expected"); }
 
   // 4) verifyTransaction against the REAL mainnet tx found on-chain
-  const { paymentService } = await import("../lib/nimiq/keys").then(() => import("../lib/payments/nimbty-nimiq.service"));
+  const { paymentService } = await import("../lib/nimiq/keys").then(() => import("../lib/payments/nimbTy-nimiq.service"));
   const realHash = "6d1229f4fa6e6d1b7c93fd74a3be524b61a51910a1328437c0eebd572ccd0426";
   const mkReq = (payTo: string, amount: string, memo: string) => ({
     bountyId: "x", publicId: "unused" as string, payTo, amount, currency: "NIM" as const,
@@ -45,7 +45,7 @@ async function main() {
   });
   const good = await paymentService.verifyTransaction({ request: mkReq("NQ09 ET4R BJ71 ABPM MKKE 4G7R PC08 DP0H YPQ7", "0.86017", "You mined NIM"), txHash: realHash });
   console.log("real-tx verify (expect true):", good.verified, "| sender:", good.sender.slice(0, 14) + "...", "| block:", good.blockHeight);
-  const bad = await paymentService.verifyTransaction({ request: mkReq("NQ09 ET4R BJ71 ABPM MKKE 4G7R PC08 DP0H YPQ7", "999", "nimbty:nope"), txHash: realHash });
+  const bad = await paymentService.verifyTransaction({ request: mkReq("NQ09 ET4R BJ71 ABPM MKKE 4G7R PC08 DP0H YPQ7", "999", "nimbTy:nope"), txHash: realHash });
   console.log("wrong-amount verify (expect false):", bad.verified);
   const missing = await paymentService.verifyTransaction({ request: mkReq("NQ09 ET4R BJ71 ABPM MKKE 4G7R PC08 DP0H YPQ7", "0.86017", "x"), txHash: "00".repeat(32) });
   console.log("unknown-hash verify (expect false):", missing.verified);

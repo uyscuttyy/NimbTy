@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NimBty — Tiny tasks. Real rewards.",
+  title: "NimbTy — Tiny tasks. Real rewards.",
   description: "Put a bounty on anything that needs doing. Funded in Nimiq. Paid the moment it's done.",
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
