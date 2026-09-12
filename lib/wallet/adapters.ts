@@ -96,17 +96,78 @@ export const devAdapter: WalletAdapter = {
   },
 };
 
-/* ────────────────────────── Nimiq Pay adapter (mobile) ──────────────────────
- * Deep-link round-trip signing can't complete synchronously in-page.
- * Hub popup is the mobile path for now. */
+/* ────────────────────────── Nimiq Pay injected provider (in-app) ──────────────
+ * Inside Nimiq Pay's browser `window.nimiq` is injected by the host app: no
+ * Hub popup, no redirect, the wallet the user already has open signs directly.
+ * Server verification is unchanged (Ed25519 over the server message + strict
+ * address↔pubkey binding), so this stays proof-of-ownership, not a claim. */
+type PaySigResult = { publicKey: string; signature: string };
+type PayError = { error?: { message?: string } };
+let payProvider: {
+  listAccounts(): Promise<string[] | PayError>;
+  sign(message: string): Promise<PaySigResult | PayError>;
+} | null = null;
+
+async function getPayProvider() {
+  if (payProvider) return payProvider;
+  if (typeof window !== "undefined" && (window as unknown as { nimiq?: unknown }).nimiq) {
+    payProvider = (window as unknown as { nimiq: typeof payProvider }).nimiq;
+    return payProvider;
+  }
+  const { init } = await import("@nimiq/mini-app-sdk");
+  payProvider = await init({ timeout: 4000 });
+  return payProvider;
+}
+
+function isPayError(r: unknown): r is PayError {
+  return !!r && typeof r === "object" && "error" in (r as Record<string, unknown>);
+}
+
+function hexish(s: string): string {
+  const v = s.trim().replace(/^0x/i, "").replace(/\s+/g, "");
+  if (/^[0-9a-fA-F]+$/.test(v) && v.length % 2 === 0) return v.toLowerCase();
+  const bin = atob(v); // fallback: base64 → hex
+  let out = "";
+  for (let i = 0; i < bin.length; i++) out += bin.charCodeAt(i).toString(16).padStart(2, "0");
+  return out;
+}
+
 export const payAdapter: WalletAdapter = {
   id: "pay",
-  label: "Nimiq Pay (via Hub)",
-  isAvailable: () => false,
-  async connect() { throw new WalletError("PAY_MODE_PHASE_2", "Use Nimiq Hub to connect on mobile."); },
-  async sign() { throw new WalletError("PAY_MODE_PHASE_2", "Use Nimiq Hub to connect on mobile."); },
+  label: "Nimiq Pay",
+  isAvailable: () => typeof window !== "undefined" && !!(window as unknown as { nimiq?: unknown }).nimiq,
+  async connect() {
+    let provider;
+    try {
+      provider = await getPayProvider();
+    } catch {
+      throw new WalletError("WALLET_UNAVAILABLE", "Nimiq Pay wallet not found. Open this page inside the Nimiq Pay app.");
+    }
+    let accounts: string[] | PayError;
+    try {
+      accounts = await provider!.listAccounts();
+    } catch {
+      throw new WalletError("WALLET_UNAVAILABLE", "Nimiq Pay did not answer. Reopen the page inside the app and try again.");
+    }
+    if (isPayError(accounts)) throw new WalletError("WALLET_REJECTED", accounts.error?.message || "Nimiq Pay refused the request.");
+    const addr = (accounts[0] ?? "").trim().replace(/\s+/g, "").toUpperCase();
+    if (!/^NQ[0-9A-Z]{34}$/.test(addr)) throw new WalletError("INVALID_ADDRESS_INPUT", "Nimiq Pay returned no usable address.");
+    return { walletAddress: addr };
+  },
+  async sign(message, walletAddress) {
+    const provider = await getPayProvider();
+    let r: PaySigResult | PayError;
+    try {
+      r = await provider!.sign(message);
+    } catch {
+      throw new WalletError("SIGNATURE_REJECTED", "You declined to sign the login request.");
+    }
+    if (isPayError(r)) throw new WalletError("SIGNATURE_REJECTED", r.error?.message || "Signing was declined in Nimiq Pay.");
+    return { walletAddress, message, signatureHex: hexish(r.signature), pubKeyHex: hexish(r.publicKey) };
+  },
 };
 
 export function pickAdapter(): WalletAdapter {
+  if (typeof window !== "undefined" && !!(window as unknown as { nimiq?: unknown }).nimiq) return payAdapter;
   return devAdapter.isAvailable() ? devAdapter : hubAdapter;
 }

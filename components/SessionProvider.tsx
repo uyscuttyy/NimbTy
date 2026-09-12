@@ -43,11 +43,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async () => {
     setError(null);
+    // Re-pick at click time: inside Nimiq Pay the injected provider can arrive
+    // after first render, so a memoized choice could miss it.
+    const liveAdapter = pickAdapter();
     try {
-      if (!adapter.isAvailable())
-        throw new WalletError("WALLET_UNAVAILABLE", "No wallet adapter available. Enable the dev wallet (NEXT_PUBLIC_ALLOW_DEV_WALLET=true) or install the Nimiq Hub adapter.");
-      setBusy({ step: `Opening ${adapter.label}…` });
-      const { walletAddress } = await adapter.connect();
+      if (!liveAdapter.isAvailable())
+        throw new WalletError("WALLET_UNAVAILABLE", "No wallet found. Open this page inside the Nimiq Pay app, or connect via Nimiq Hub in a regular browser.");
+      setBusy({ step: `Opening ${liveAdapter.label}…` });
+      const { walletAddress } = await liveAdapter.connect();
 
       setBusy({ step: "Preparing sign-in…" });
       const nRes = await fetch("/api/auth/nonce", {
@@ -59,7 +62,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       if (!nonce.ok) throw new Error(nonce.message ?? "Could not start sign-in.");
 
       setBusy({ step: "Waiting for your signature…" });
-      const signed = await adapter.sign(nonce.message, walletAddress);
+      const signed = await liveAdapter.sign(nonce.message, walletAddress);
 
       setBusy({ step: "Verifying signature…" });
       const vRes = await fetch("/api/auth/verify", {
@@ -77,7 +80,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setBusy(null);
     }
-  }, [adapter]);
+  }, []);
 
   const signOut = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" });
