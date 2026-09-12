@@ -1,10 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function ShareButtons({ publicId, title }: { publicId: string; title: string }) {
   const [copied, setCopied] = useState(false);
+  // Origin is client-only: render the bare path (matches SSR) until mounted,
+  // then upgrade to the absolute URL so shared links work everywhere.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => { setOrigin(window.location.origin); }, []);
   const path = `/n/${publicId}`;
-  const url = typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
+  const url = `${origin}${path}`;
   const text = `${title} — bounty on NimbTy`;
 
   const share = async () => {
