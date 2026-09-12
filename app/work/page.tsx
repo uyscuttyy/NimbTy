@@ -24,12 +24,26 @@ const GROUPS: [string, (w: WorkItem) => boolean][] = [
 export default function WorkPage() {
   const [work, setWork] = useState<WorkItem[] | null>(null);
   const [tab, setTab] = useState("Active");
+  // "You got paid" banner: bounties settled since this device last acknowledged.
+  const [seenAt, setSeenAt] = useState<number>(() => {
+    try { return Number(localStorage.getItem("nimbTy_work_seen_at")) || 0; } catch { return 0; }
+  });
 
   useEffect(() => {
     api<{ ok: boolean; work?: WorkItem[] }>("/api/work")
       .then((d) => setWork(d.work ?? []))
       .catch(() => setWork([]));
   }, []);
+
+  const freshPaid = (work ?? []).filter(
+    (w) => ["PAID", "WORKER_PAID"].includes(w.bounty.status)
+      && w.bounty.settledAt && new Date(w.bounty.settledAt).getTime() > seenAt,
+  );
+  const dismissPaid = () => {
+    const now = Date.now();
+    setSeenAt(now);
+    try { localStorage.setItem("nimbTy_work_seen_at", String(now)); } catch { /* private mode */ }
+  };
 
   if (work !== null && work.length === 0) {
     return (
@@ -45,6 +59,19 @@ export default function WorkPage() {
   return (
     <div className="space-y-4 pt-4">
       <h1 className="font-display text-2xl font-bold text-navy">My work</h1>
+      {freshPaid.length > 0 && (
+        <div role="status" className="space-y-2 rounded-3xl bg-accent-mint/15 p-4">
+          {freshPaid.map((w) => (
+            <p key={w.claimId} className="text-sm font-bold text-emerald-800">
+              You got paid {w.bounty.rewardAmount} {w.bounty.currency} for{" "}
+              <Link href={`/n/${w.bounty.publicId}`} className="underline">{w.bounty.title}</Link>
+            </p>
+          ))}
+          <button onClick={dismissPaid} className="min-h-touch rounded-2xl bg-navy px-4 py-2 text-xs font-bold text-white">
+            Got it
+          </button>
+        </div>
+      )}
       <div className="flex gap-1" role="tablist" aria-label="Work filter">
         {GROUPS.map(([g]) => (
           <button key={g} role="tab" aria-selected={tab === g} onClick={() => setTab(g)}

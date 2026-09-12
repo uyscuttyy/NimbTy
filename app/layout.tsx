@@ -14,7 +14,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-dvh bg-[#FAFAFA] antialiased">
+      <body className="min-h-dvh bg-[#FAFAFA] antialiased" suppressHydrationWarning>
         <SessionProvider>
           <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur">
             <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-2 sm:px-4 md:px-6">
