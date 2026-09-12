@@ -105,7 +105,7 @@ export default function BountyPage({ params }: { params: Promise<{ publicId: str
 
       {bounty.status === "OPEN" && !isCreator && status === "connected" && !showClaim && (
         <button onClick={() => setShowClaim(true)} className="min-h-touch w-full rounded-2xl bg-accent-yellow px-5 py-3 font-display text-lg font-bold text-navy active:scale-[0.99]">
-          DO IT — earn {bounty.rewardAmount} {bounty.currency}
+          DO IT, earn {bounty.rewardAmount} {bounty.currency}
         </button>
       )}
 
@@ -131,7 +131,7 @@ export default function BountyPage({ params }: { params: Promise<{ publicId: str
         <FundPanel publicId={publicId} onLive={load} />
       )}
       {(bounty.status === "DRAFT" || bounty.status === "FUNDING") && !isCreator && (
-        <p className="rounded-3xl bg-slate-100 p-4 text-center text-sm font-semibold text-slate2">This bounty isn&apos;t funded yet — check back soon.</p>
+        <p className="rounded-3xl bg-slate-100 p-4 text-center text-sm font-semibold text-slate2">This bounty isn't funded yet, check back soon.</p>
       )}
 
       {(bounty.status === "CLAIMED" || bounty.status === "REVISION_REQUESTED") && isWorker && (
@@ -140,14 +140,14 @@ export default function BountyPage({ params }: { params: Promise<{ publicId: str
             <p className="font-display font-bold text-primary-dark">IN PROGRESS ⏳ <Countdown targetIso={bounty.deadlineAt} /></p>
             <p className="text-sm font-bold text-primary-dark">{bounty.rewardAmount} {bounty.currency} LOCKED</p>
           </div>
-          <SubmitForm publicId={publicId} header={bounty.status === "REVISION_REQUESTED" ? "Resubmit — revision requested" : "Submit your work"} onSubmitted={load} />
+          <SubmitForm publicId={publicId} header={bounty.status === "REVISION_REQUESTED" ? "Resubmit, revision requested" : "Submit your work"} onSubmitted={load} />
         </div>
       )}
 
       {bounty.status === "SUBMITTED" && isWorker && bounty.latestSubmission && (
         <div className="rounded-3xl bg-accent-purple/10 p-4 text-center">
           <p className="font-display font-bold text-navy">SUBMITTED ✓ Waiting for creator review.</p>
-          <p className="mt-1 text-sm text-slate2">Review time: <Countdown targetIso={bounty.latestSubmission.reviewDeadlineAt} /> — silence means you get paid.</p>
+          <p className="mt-1 text-sm text-slate2">Review time: <Countdown targetIso={bounty.latestSubmission.reviewDeadlineAt} />, silence means you get paid.</p>
         </div>
       )}
 
@@ -157,7 +157,7 @@ export default function BountyPage({ params }: { params: Promise<{ publicId: str
 
       {bounty.status === "DISPUTED" && bounty.openDispute && (
         <div className="rounded-3xl border-2 border-accent-coral bg-white p-4">
-          <h3 className="font-display font-bold text-rose-700">⚠ DISPUTED — {bounty.rewardAmount} {bounty.currency} LOCKED</h3>
+          <h3 className="font-display font-bold text-rose-700">⚠ DISPUTED, {bounty.rewardAmount} {bounty.currency} LOCKED</h3>
           <p className="mt-1 text-sm"><span className="font-bold">Reason:</span> {bounty.openDispute.reason}</p>
           <p className="mt-1 text-xs text-slate2">Status: Awaiting resolution. Neither side can touch the reward.</p>
         </div>
@@ -165,7 +165,7 @@ export default function BountyPage({ params }: { params: Promise<{ publicId: str
 
       {paid && (
         <div className="rounded-3xl bg-navy p-5 text-center text-white">
-          <p className="font-display text-xl font-bold">💰 PAID — {bounty.rewardAmount} {bounty.currency}</p>
+          <p className="font-display text-xl font-bold">💰 PAID {bounty.rewardAmount} {bounty.currency}</p>
           {bounty.fundingTxHash && <p className="mt-1 font-mono text-xs text-slate-300">escrow tx: {bounty.fundingTxHash.slice(0, 20)}…</p>}
         </div>
       )}

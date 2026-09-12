@@ -41,7 +41,7 @@ export default function PostPage() {
     return (
       <div className="pt-10 text-center">
         <p className="font-display text-xl font-bold text-navy">Connect your wallet to post a bounty.</p>
-        <p className="mt-1 text-sm text-slate2">Your wallet is your identity — no passwords, ever.</p>
+        <p className="mt-1 text-sm text-slate2">Your wallet is your identity, no passwords, ever.</p>
       </div>
     );
   }
@@ -73,15 +73,15 @@ export default function PostPage() {
             placeholder="What exactly? How will you check it? Links, files, acceptance criteria…"
             className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm" />
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           <div>
-            <label htmlFor="reward" className="text-sm font-bold text-navy">Reward (NIM)</label>
+            <label htmlFor="reward" className="block text-center text-xs font-bold text-navy">Reward (NIM)</label>
             <input id="reward" value={reward} onChange={(e) => setReward(e.target.value)} required inputMode="decimal"
-              className="mt-1 min-h-touch w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm" />
+              className="mt-1 min-h-touch w-full rounded-2xl border border-slate-200 bg-white px-2 text-center text-sm" />
           </div>
           <div>
-            <label htmlFor="deadline" className="text-sm font-bold text-navy">Deadline</label>
-            <select id="deadline" value={deadlineH} onChange={(e) => setDeadlineH(e.target.value)} className="mt-1 min-h-touch w-full rounded-2xl border border-slate-200 bg-white px-2 text-sm">
+            <label htmlFor="deadline" className="block text-center text-xs font-bold text-navy">Deadline</label>
+            <select id="deadline" value={deadlineH} onChange={(e) => setDeadlineH(e.target.value)} className="mt-1 min-h-touch w-full rounded-2xl border border-slate-200 bg-white px-2 text-center text-sm">
               <option value="4">4 hours</option>
               <option value="12">12 hours</option>
               <option value="24">24 hours</option>
@@ -90,12 +90,13 @@ export default function PostPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="review" className="text-sm font-bold text-navy">Review time</label>
-            <select id="review" value={reviewHours} onChange={(e) => setReviewHours(e.target.value)} className="mt-1 min-h-touch w-full rounded-2xl border border-slate-200 bg-white px-2 text-sm">
+            <label htmlFor="review" className="block text-center text-xs font-bold text-navy">Review time</label>
+            <select id="review" value={reviewHours} onChange={(e) => setReviewHours(e.target.value)} className="mt-1 min-h-touch w-full rounded-2xl border border-slate-200 bg-white px-2 text-center text-sm">
+              <option value="3">3 hours</option>
               <option value="6">6 hours</option>
               <option value="12">12 hours</option>
               <option value="24">24 hours</option>
-              <option value="48">48 hours</option>
+              <option value="36">36 hours</option>
             </select>
           </div>
         </div>

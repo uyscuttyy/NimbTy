@@ -171,3 +171,35 @@ export function pickAdapter(): WalletAdapter {
   if (typeof window !== "undefined" && !!(window as unknown as { nimiq?: unknown }).nimiq) return payAdapter;
   return devAdapter.isAvailable() ? devAdapter : hubAdapter;
 }
+
+/* ─────────────────── One-tap in-app funding (Nimiq Pay only) ─────────────────
+ * Sends the escrow payment with the bounty memo straight from the wallet the
+ * user already has open. Resolves once Pay accepts + broadcasts; the server
+ * still verifies the real on-chain transaction before going live. */
+export function isPayFundingAvailable(): boolean {
+  return typeof window !== "undefined" && !!(window as unknown as { nimiq?: unknown }).nimiq;
+}
+
+export function nimToLuna(amountNim: string): number {
+  const luna = Math.round(Number.parseFloat(amountNim) * 1e5);
+  if (!Number.isFinite(luna) || luna <= 0) throw new WalletError("INVALID_ADDRESS_INPUT", "Invalid reward amount.");
+  return luna;
+}
+
+export async function payFundingViaPay(input: { to: string; luna: number; memo: string }): Promise<void> {
+  const w = window as unknown as {
+    nimiq?: {
+      sendBasicTransactionWithData(tx: { recipient: string; value: number; data: string }): Promise<string | { error?: { message?: string } }>;
+    };
+  };
+  if (!w.nimiq?.sendBasicTransactionWithData)
+    throw new WalletError("WALLET_UNAVAILABLE", "Nimiq Pay wallet not found. Open this page inside the Nimiq Pay app.");
+  let r: string | { error?: { message?: string } };
+  try {
+    r = await w.nimiq.sendBasicTransactionWithData({ recipient: input.to, value: input.luna, data: input.memo });
+  } catch {
+    throw new WalletError("WALLET_REJECTED", "Payment was declined in Nimiq Pay.");
+  }
+  if (r && typeof r === "object" && "error" in r)
+    throw new WalletError("WALLET_REJECTED", r.error?.message || "Payment was declined in Nimiq Pay.");
+}

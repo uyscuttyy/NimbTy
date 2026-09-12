@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NimbTy — Tiny tasks. Real rewards.",
+  title: "NimbTy: Tiny tasks. Real rewards.",
   description: "Put a bounty on anything that needs doing. Funded in Nimiq. Paid the moment it's done.",
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div className="flex items-center gap-4">
                 <Link href="/" className="flex items-baseline gap-2">
                   <span className="font-display text-xl font-bold tracking-tight">
-                    Nim<span className="text-primary">Bty</span>
+                    Nim<span className="text-primary">bTy</span>
                   </span>
                   <span className="hidden sm:inline text-xs text-slate2">Tiny tasks. Real rewards.</span>
                 </Link>

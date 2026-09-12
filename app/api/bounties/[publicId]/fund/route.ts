@@ -35,8 +35,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ publicI
   try {
     // ── Step 1: open the funding window ──
     if (!txHash && !detect) {
+      // Resume: the window is already open (e.g. user paid in-app but the
+      // confirm didn't finish) — hand back the same payment details.
+      if (bounty.status === "FUNDING") {
+        const pending = await prisma.payment.findFirst({
+          where: { bountyId: bounty.id, kind: "ESCROW_FUNDING", status: "PENDING" },
+          orderBy: { createdAt: "desc" },
+        });
+        if (pending) {
+          const existing = await paymentService.createFundingRequest({
+            bountyId: bounty.id, publicId: bounty.publicId,
+            amount: bounty.rewardAmount.toString(), currency: bounty.currency,
+          });
+          return apiOk({ funding: existing, paymentId: pending.id, resumed: true });
+        }
+      }
       if (bounty.status !== "DRAFT")
-        return apiError("INVALID_STATE", `Funding can only start from DRAFT (now ${bounty.status}).`, 409);
+        return apiError("INVALID_STATE", `Funding can't start from ${bounty.status}. Refresh the page and continue where you left off.`, 409);
       let escrow: string;
       try {
         escrow = paymentService.getEscrowAddress();

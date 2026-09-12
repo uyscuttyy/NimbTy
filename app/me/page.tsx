@@ -46,7 +46,7 @@ export default function MePage() {
         <div className="mt-4 grid grid-cols-4 gap-2 text-center">
           <div className="rounded-2xl bg-white/10 p-2"><p className="font-display text-xl font-bold">{p.worker.completed}</p><p className="text-[10px] uppercase text-slate-300">Done</p></div>
           <div className="rounded-2xl bg-white/10 p-2"><p className="font-display text-xl font-bold">{p.worker.earned}</p><p className="text-[10px] uppercase text-slate-300">Earned</p></div>
-          <div className="rounded-2xl bg-white/10 p-2"><p className="font-display text-xl font-bold">{p.approvalRate === null ? "—" : `${p.approvalRate}%`}</p><p className="text-[10px] uppercase text-slate-300">Approval</p></div>
+          <div className="rounded-2xl bg-white/10 p-2"><p className="font-display text-xl font-bold">{p.approvalRate === null ? "N/A" : `${p.approvalRate}%`}</p><p className="text-[10px] uppercase text-slate-300">Approval</p></div>
           <div className="rounded-2xl bg-white/10 p-2"><p className="font-display text-xl font-bold">🔥{p.streak.current}</p><p className="text-[10px] uppercase text-slate-300">Streak</p></div>
         </div>
         <p className="mt-3 text-xs text-slate-300">Posted {p.creator.posted} · Funded {p.creator.funded} · Paid out {p.creator.paid}</p>

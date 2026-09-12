@@ -23,7 +23,7 @@ export default function Home() {
           Put a bounty <span className="text-accent-yellow">on it.</span>
         </h1>
         <p className="mt-3 max-w-xl text-base text-slate-300">
-          Small tasks. Real rewards. Get something done or get paid to do it — funded in Nimiq, locked in escrow, no chasing payments.
+          Small tasks. Real rewards. Get something done or get paid to do it, funded in Nimiq, locked in escrow, no chasing payments.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/post" className="min-h-touch rounded-2xl bg-accent-yellow px-6 py-3 font-display text-base font-bold text-navy active:scale-95">

@@ -22,7 +22,7 @@ export default function SubmitPage({ params }: { params: Promise<{ claimId: stri
     return (
       <div className="pt-10 text-center">
         <p className="font-display text-xl font-bold text-navy">SUBMITTED ✓</p>
-        <p className="mt-1 text-sm text-slate2">Waiting for creator review — silence means you get paid.</p>
+        <p className="mt-1 text-sm text-slate2">Waiting for creator review, silence means you get paid.</p>
         {target && <Link href={`/n/${target.publicId}`} className="mt-3 inline-block font-bold text-primary">Back to bounty →</Link>}
       </div>
     );

@@ -1,8 +1,10 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { pickAdapter } from "@/lib/wallet/adapters";
 import { WalletError } from "@/lib/wallet/types";
+
+const LAST_WALLET_KEY = "nimbTy_last_wallet";
 
 type SessionUser = { id: string; walletAddress: string; displayName: string | null };
 type Status = "loading" | "connected" | "disconnected";
@@ -75,6 +77,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
       setUser(v.user);
       setStatus("connected");
+      try { localStorage.setItem(LAST_WALLET_KEY, v.user.walletAddress); } catch { /* private mode */ }
     } catch (e) {
       setError(e instanceof WalletError || e instanceof Error ? e.message : "Sign-in failed.");
     } finally {
@@ -84,9 +87,32 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    try { localStorage.removeItem(LAST_WALLET_KEY); } catch { /* private mode */ }
     setUser(null);
     setStatus("disconnected");
   }, []);
+
+  // Auto sign-in for returning wallets: if this device signed in before and we
+  // are inside Nimiq Pay (injected provider), reconnect silently on load.
+  // Outside Pay we never auto-popup the Hub — the user taps Connect.
+  const autoTried = useRef(false);
+  useEffect(() => {
+    if (status !== "disconnected" || autoTried.current) return;
+    autoTried.current = true;
+    let remembered: string | null = null;
+    try { remembered = localStorage.getItem(LAST_WALLET_KEY); } catch { remembered = null; }
+    if (!remembered) return;
+    let stopped = false;
+    let tries = 0;
+    const t = setInterval(() => {
+      if (stopped) { clearInterval(t); return; }
+      if ((window as unknown as { nimiq?: unknown }).nimiq) {
+        clearInterval(t);
+        if (!stopped) signIn();
+      } else if (++tries > 12) clearInterval(t);
+    }, 500);
+    return () => { stopped = true; clearInterval(t); };
+  }, [status, signIn]);
 
   const value: SessionCtx = {
     user, status, busy, error, adapterLabel: adapter.label,
