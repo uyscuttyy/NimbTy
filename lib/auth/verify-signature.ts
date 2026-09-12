@@ -26,6 +26,7 @@ export const CANDIDATE_NAMES = [
   "blake2b(connect-prefix)",
   "sha256(raw)",
   "sha256(signed-prefix)",
+  "sha256(signed-prefix+len) [Nimiq Pay native]",
 ];
 
 function candidates(message: string): Buffer[] {
@@ -45,6 +46,7 @@ function candidates(message: string): Buffer[] {
     Buffer.from(blake2b(connect, { dkLen: 32 })),
     createHash("sha256").update(raw).digest(),
     createHash("sha256").update(signed).digest(),
+    createHash("sha256").update(signedLen).digest(), // Nimiq Pay native sign()
   ];
 }
 
