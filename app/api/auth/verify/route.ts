@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isValidNimiqAddressFormat, normalizeWalletAddress } from "@/lib/auth/address";
 import { buildSignMessage, consumeNonce } from "@/lib/auth/nonce";
-import { verifyEd25519Signature } from "@/lib/auth/verify-signature";
+import { verifyEd25519Signature, CANDIDATE_NAMES } from "@/lib/auth/verify-signature";
 import { createSessionToken, setSessionCookie } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 
@@ -25,8 +25,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, code: "VERIFICATION_UNSUPPORTED", message: "Wallet did not return a public key. Signature verification is impossible without it." }, { status: 400 });
 
     // 2) Real cryptographic check (Ed25519) over the exact server-issued message.
-    const valid = verifyEd25519Signature(buildSignMessage(addr, body.nonce ?? ""), body.pubKeyHex, body.signatureHex);
-    if (!valid)
+    const match = verifyEd25519Signature(buildSignMessage(addr, body.nonce ?? ""), body.pubKeyHex, body.signatureHex);
+    console.log(`auth/verify sigcheck addr=${addr} pubLen=${(body.pubKeyHex ?? "").length} sigLen=${(body.signatureHex ?? "").length} match=${match < 0 ? "none" : CANDIDATE_NAMES[match]}`);
+    if (match < 0)
       return NextResponse.json({ ok: false, code: "SIGNATURE_INVALID", message: "Signature check failed. Nothing was signed correctly." }, { status: 401 });
 
     // 2b) Address↔pubkey binding: the key that signed must OWN the stated Nimiq address.
