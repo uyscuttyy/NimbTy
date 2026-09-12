@@ -1,0 +1,20 @@
+name: settle
+# Free-tier settlement timer: Vercel Hobby only allows daily crons, so this
+# workflow (free on public repos) drives the 5-minute settlement instead.
+# Required repo secret: CRON_SECRET (same value as the Vercel env var).
+# Required repo variable (or edit URL below): APP_URL, e.g. https://nimbty.vercel.app
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run settlement
+        run: |
+          code=$(curl -s -m 60 -o /tmp/settle.json -w "%{http_code}" "${{ vars.APP_URL }}/api/cron/settle?secret=${{ secrets.CRON_SECRET }}")
+          cat /tmp/settle.json
+          test "$code" = "200"
