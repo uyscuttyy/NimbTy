@@ -74,14 +74,14 @@ export default function PostPage() {
             className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm" />
         </div>
         <div className="grid grid-cols-3 gap-2">
-          <div>
-            <label htmlFor="reward" className="block text-center text-xs font-bold text-navy">Reward (NIM)</label>
+          <div className="min-w-0">
+            <label htmlFor="reward" className="block truncate text-center text-xs font-bold text-navy">Reward (NIM)</label>
             <input id="reward" value={reward} onChange={(e) => setReward(e.target.value)} required inputMode="decimal"
-              className="mt-1 min-h-touch w-full rounded-2xl border border-slate-200 bg-white px-2 text-center text-sm" />
+              className="mt-1 h-12 w-full rounded-2xl border border-slate-200 bg-white px-1 text-center text-sm" />
           </div>
-          <div>
-            <label htmlFor="deadline" className="block text-center text-xs font-bold text-navy">Deadline</label>
-            <select id="deadline" value={deadlineH} onChange={(e) => setDeadlineH(e.target.value)} className="mt-1 min-h-touch w-full rounded-2xl border border-slate-200 bg-white px-2 text-center text-sm">
+          <div className="min-w-0">
+            <label htmlFor="deadline" className="block truncate text-center text-xs font-bold text-navy">Deadline</label>
+            <select id="deadline" value={deadlineH} onChange={(e) => setDeadlineH(e.target.value)} className="mt-1 h-12 w-full truncate rounded-2xl border border-slate-200 bg-white px-1 text-center text-sm">
               <option value="4">4 hours</option>
               <option value="12">12 hours</option>
               <option value="24">24 hours</option>
@@ -89,9 +89,9 @@ export default function PostPage() {
               <option value="168">7 days</option>
             </select>
           </div>
-          <div>
-            <label htmlFor="review" className="block text-center text-xs font-bold text-navy">Review time</label>
-            <select id="review" value={reviewHours} onChange={(e) => setReviewHours(e.target.value)} className="mt-1 min-h-touch w-full rounded-2xl border border-slate-200 bg-white px-2 text-center text-sm">
+          <div className="min-w-0">
+            <label htmlFor="review" className="block truncate text-center text-xs font-bold text-navy">Review time</label>
+            <select id="review" value={reviewHours} onChange={(e) => setReviewHours(e.target.value)} className="mt-1 h-12 w-full truncate rounded-2xl border border-slate-200 bg-white px-1 text-center text-sm">
               <option value="3">3 hours</option>
               <option value="6">6 hours</option>
               <option value="12">12 hours</option>
@@ -105,7 +105,7 @@ export default function PostPage() {
           className="min-h-touch w-full rounded-2xl bg-primary px-5 py-3 font-display text-base font-bold text-white shadow-[0_4px_0_0_#0369A1] active:translate-y-0.5 active:shadow-none disabled:opacity-60">
           {busy ? "Creating…" : "CONTINUE → FUND"}
         </button>
-        <p className="text-center text-xs text-slate2">NIM only in this MVP · silence after submission auto-pays the worker</p>
+        <p className="text-center text-xs text-slate2">USDT payments coming soon. Silence after submission auto-pays the worker</p>
       </form>
     </div>
   );
