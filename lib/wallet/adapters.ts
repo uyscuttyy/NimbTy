@@ -1,5 +1,7 @@
 "use client";
 import HubApi from "@nimiq/hub-api";
+import { blake2b } from "@noble/hashes/blake2.js";
+import { hexToBytes } from "@noble/hashes/utils.js";
 import type { WalletAdapter } from "./types";
 import { WalletError, toHex } from "./types";
 
@@ -60,7 +62,7 @@ export const hubAdapter: WalletAdapter = {
  * Real cryptographic proof-of-session-key — but NOT proof of on-chain account
  * ownership. Gated by NEXT_PUBLIC_ALLOW_DEV_WALLET and server-side
  * ALLOW_UNVERIFIED_WALLET_LOGIN. Turn both OFF for the real demo. */
-const NIMIQ_B32 = "023456789ABCDEFGHJKMNPQRSTVWXYZ";
+const NIMIQ_B32 = "0123456789ABCDEFGHJKLMNPQRSTUVXYZ";
 
 function randomDevAddress(): string {
   let s = "NQ";
@@ -95,6 +97,45 @@ export const devAdapter: WalletAdapter = {
     }
   },
 };
+
+/* Browser-safe NQ address derivation (mirrors lib/nimiq/keys, which is Node-only):
+ * address = Blake2b-256(pubkey)[:20], base32 + IBAN check digits. */
+function b32encode(bytes: Uint8Array): string {
+  let out = "";
+  let bits = 0;
+  let acc = 0;
+  for (const byte of bytes) {
+    acc = (acc << 8) | byte;
+    bits += 8;
+    while (bits >= 5) {
+      bits -= 5;
+      out += NIMIQ_B32[(acc >>> bits) & 31];
+    }
+    acc &= (1 << bits) - 1;
+  }
+  if (bits > 0) out += NIMIQ_B32[(acc << (5 - bits)) & 31];
+  return out;
+}
+
+function ibanValid(a: string): boolean {
+  const r = a.slice(4) + a.slice(0, 4);
+  let rem = 0;
+  for (const ch of r) {
+    const code = ch >= "0" && ch <= "9" ? ch : String(ch.charCodeAt(0) - 55);
+    for (const d of code) rem = (rem * 10 + Number(d)) % 97;
+  }
+  return rem === 1;
+}
+
+export function addressFromPubKeyHex(pubKeyHex: string): string {
+  const digest = blake2b(hexToBytes(pubKeyHex), { dkLen: 32 }).slice(0, 20);
+  const body = b32encode(digest);
+  for (let c = 0; c < 100; c++) {
+    const check = String(c).padStart(2, "0");
+    if (ibanValid(`NQ${check}${body}`)) return `NQ${check}${body}`;
+  }
+  throw new WalletError("INVALID_ADDRESS_INPUT", "Could not derive an address from that key.");
+}
 
 /* ────────────────────────── Nimiq Pay injected provider (in-app) ──────────────
  * Inside Nimiq Pay's browser `window.nimiq` is injected by the host app: no
@@ -163,7 +204,17 @@ export const payAdapter: WalletAdapter = {
       throw new WalletError("SIGNATURE_REJECTED", "You declined to sign the login request.");
     }
     if (isPayError(r)) throw new WalletError("SIGNATURE_REJECTED", r.error?.message || "Signing was declined in Nimiq Pay.");
-    return { walletAddress, message, signatureHex: hexish(r.signature), pubKeyHex: hexish(r.publicKey) };
+    const pubKeyHex = hexish(r.publicKey);
+    // Pay may sign with a different account than listAccounts()[0] (multi-account
+    // wallets). The key that signed IS the identity: derive its address like Hub's
+    // r.signer, so the server's strict binding always passes for the true signer.
+    let signer = walletAddress;
+    try {
+      signer = addressFromPubKeyHex(pubKeyHex);
+    } catch {
+      signer = walletAddress;
+    }
+    return { walletAddress: signer, message, signatureHex: hexish(r.signature), pubKeyHex };
   },
 };
 
