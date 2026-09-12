@@ -22,22 +22,40 @@ export default function BountyPage({ params }: { params: Promise<{ publicId: str
   const { user, status } = useSession();
   const [bounty, setBounty] = useState<Detail | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [showClaim, setShowClaim] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    setNotFound(false); setLoadError(false);
     try {
-      const d = await api<{ ok: boolean; bounty?: Detail }>(`/api/bounties/${publicId}`);
-      if (!d.ok) { setNotFound(true); return; }
+      const d = await api<{ ok: boolean; bounty?: Detail; code?: string }>(`/api/bounties/${publicId}`);
+      if (!d.ok) {
+        // A network blip is not a missing bounty: only a true 404 says that.
+        if (d.code === "INVALID_BOUNTY") setNotFound(true);
+        else setLoadError(true);
+        return;
+      }
       setBounty(d.bounty!);
     } catch {
-      setNotFound(true);
+      setLoadError(true);
     }
   }, [publicId]);
 
   useEffect(() => { load(); }, [load]);
 
+  if (loadError) {
+    return (
+      <div className="pt-10 text-center">
+        <p className="font-display text-xl font-bold text-navy">Couldn't load this bounty.</p>
+        <p className="mt-1 text-sm text-slate2">Check your connection and try again.</p>
+        <button onClick={load} className="mt-3 min-h-touch rounded-2xl bg-primary px-5 text-sm font-extrabold text-white">
+          Retry
+        </button>
+      </div>
+    );
+  }
   if (notFound) {
     return (
       <div className="pt-10 text-center">

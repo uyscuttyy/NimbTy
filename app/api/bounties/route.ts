@@ -4,7 +4,13 @@ import { getSessionUser, requireUser } from "@/lib/auth/session";
 import { AuthError } from "@/lib/auth/session";
 import { apiError, apiOk, generatePublicId, serializeBounty } from "@/lib/api/route-helpers";
 
+import type { BountyStatus } from "@prisma/client";
+
 const SORTS = ["newest", "ending", "reward"] as const;
+
+// Live shelf: open plus everything in progress (claimed → disputed).
+// Stays visible until deadline, payout, refund, or cancellation.
+const LIVE_STATUSES: BountyStatus[] = ["OPEN", "CLAIMED", "SUBMITTED", "REVISION_REQUESTED", "DISPUTED"];
 
 export async function GET(req: Request) {
   try {
@@ -34,7 +40,7 @@ export async function GET(req: Request) {
       { createdAt: "desc" as const };
 
     const where = {
-      status: "OPEN" as const,
+      status: { in: LIVE_STATUSES },
       ...(q ? { OR: [{ title: { contains: q, mode: "insensitive" as const } }, { description: { contains: q, mode: "insensitive" as const } }] } : {}),
       ...(cursor ? { id: { lt: cursor } } : {}),
     };
