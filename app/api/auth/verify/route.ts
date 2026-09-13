@@ -41,9 +41,7 @@ export async function POST(req: Request) {
         bound = null;
       }
       if (!bound || normalizeWalletAddress(bound) !== addr)
-        // TEMP-DEBUG: expose the comparison so a phone screenshot tells us the
-        // exact discrepancy (addresses + pubkeys are public values, not secrets).
-        return NextResponse.json({ ok: false, code: "ADDRESS_KEY_MISMATCH", message: `That key does not own this address. Sign with the address's own wallet. [dbg stated=${addr} derived=${bound ?? "null"} sig=${CANDIDATE_NAMES[match]}]`, derived: bound }, { status: 401 });
+        return NextResponse.json({ ok: false, code: "ADDRESS_KEY_MISMATCH", message: "That key does not own this address. Sign with the address's own wallet." }, { status: 401 });
     }
 
     // 3) Wallet = identity. First sign-in creates the User (spec §30/§31).

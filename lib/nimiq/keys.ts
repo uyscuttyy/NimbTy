@@ -4,6 +4,8 @@
  * Network IDs verified against core-rs-albatrossactoring primitives/src/networks.rs:
  * TestAlbatross = 5, MainAlbatross = 24.
  */
+import { addressFromPublicKeyHexPure } from "./address";
+
 export const NETWORK_IDS = { testnet: 5, mainnet: 24 } as const;
 
 export function networkIdFor(network: string): number {
@@ -24,18 +26,12 @@ function nimiq(): any {
 }
 
 /** Derive the NQ address that owns an Ed25519 public key (32-byte hex).
- * Verified against @nimiq/core KeyPair.toAddress(): address = first 20
- * bytes of Blake2b-256(pubkey). (Address.fromPublicKeys in @nimiq/core 2.21
+ * Pure-JS implementation (see ./address) — no WASM, works on cold serverless.
+ * Previously verified against @nimiq/core KeyPair.toAddress(): address = first
+ * 20 bytes of Blake2b-256(pubkey). (Address.fromPublicKeys in @nimiq/core 2.21
  * ignores its input — do NOT use it.) */
 export function addressFromPublicKeyHex(pubKeyHex: string): string {
-  const n = nimiq();
-  const pub = n.PublicKey.fromHex(pubKeyHex);
-  const raw = Uint8Array.from(pub.serialize() as Uint8Array);
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const req = eval("require") as NodeRequire;
-  const { blake2b } = req("@noble/hashes/blake2.js") as { blake2b: (m: Uint8Array, o?: { dkLen: number }) => Uint8Array };
-  const digest = Buffer.from(blake2b(raw, { dkLen: 32 })).slice(0, 20);
-  return n.Address.fromAny(digest).toUserFriendlyAddress() as string;
+  return addressFromPublicKeyHexPure(pubKeyHex);
 }
 
 /** IBAN-mod97 checksum over an NQ address (spaces ignored, case-insensitive). */
