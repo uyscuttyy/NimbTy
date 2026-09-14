@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" rx="232" fill="#0B1B34"/>
+  <polygon points="822,512 667,780 357,780 202,512 357,244 667,244" fill="#FFB731"/>
+  <text x="512" y="512" text-anchor="middle" dominant-baseline="central"
+        font-family="Fredoka" font-weight="700" font-size="430" fill="#0B1B34">N</text>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0B1B34"/>
+  <g fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="26">
+    <polygon points="1130,60 1030,233 830,233 730,60 830,-113 1030,-113"/>
+    <polygon points="1290,560 1230,663 1110,663 1050,560 1110,457 1230,457"/>
+  </g>
+  <text x="90" y="150" font-family="Nunito Sans" font-weight="800" font-size="30"
+        letter-spacing="6" fill="#FFB731">NIMIQ-POWERED BOUNTIES</text>
+  <text x="86" y="300" font-family="Fredoka" font-weight="700" font-size="150" fill="#FFFFFF">Nim<tspan fill="#FFB731">bTy</tspan></text>
+  <text x="90" y="370" font-family="Nunito Sans" font-weight="700" font-size="42" fill="#FFFFFF" opacity="0.85">Tiny tasks. Real rewards.</text>
+  <g>
+    <rect x="90" y="420" width="330" height="88" rx="24" fill="#FFB731"/>
+    <text x="255" y="476" text-anchor="middle" font-family="Fredoka" font-weight="600" font-size="40" fill="#0B1B34">POST A BOUNTY</text>
+  </g>
+  <g>
+    <rect x="700" y="115" width="410" height="400" rx="36" fill="#FFFFFF"/>
+    <rect x="736" y="155" width="150" height="52" rx="26" fill="#FFB731"/>
+    <text x="811" y="190" text-anchor="middle" font-family="Nunito Sans" font-weight="800" font-size="30" fill="#0B1B34">20 NIM</text>
+    <rect x="898" y="155" width="176" height="52" rx="26" fill="#34D399"/>
+    <text x="986" y="190" text-anchor="middle" font-family="Nunito Sans" font-weight="800" font-size="28" fill="#0B1B34">IN REVIEW</text>
+    <text x="736" y="270" font-family="Fredoka" font-weight="600" font-size="44" fill="#0B1B34">Ronaldo article</text>
+    <text x="736" y="318" font-family="Nunito Sans" font-weight="700" font-size="30" fill="#64748B">Reward locked in escrow</text>
+    <rect x="736" y="360" width="338" height="20" rx="10" fill="#E2E8F0"/>
+    <rect x="736" y="360" width="220" height="20" rx="10" fill="#34D399"/>
+    <text x="736" y="430" font-family="Nunito Sans" font-weight="800" font-size="30" fill="#0369A1">Review ends in 02:59:54</text>
+  </g>
+</svg>
