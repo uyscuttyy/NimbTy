@@ -5,6 +5,29 @@ import { api } from "@/lib/ui/bounty";
 interface Item { type: "TEXT" | "LINK" | "IMAGE" | "FILE"; text: string; url: string }
 
 function ItemEditor({ item, onChange, onRemove }: { item: Item; onChange: (i: Item) => void; onRemove: () => void }) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/uploads", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.message ?? "Upload failed");
+      onChange({ ...item, type: "FILE", url: data.url });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      // Reset input so same file can be re-selected
+      e.target.value = "";
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
       <div className="flex gap-1" role="group" aria-label="Proof type">
@@ -19,6 +42,21 @@ function ItemEditor({ item, onChange, onRemove }: { item: Item; onChange: (i: It
       {item.type === "TEXT" ? (
         <textarea value={item.text} onChange={(e) => onChange({ ...item, text: e.target.value })} rows={2}
           placeholder="What did you complete?" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm" />
+      ) : item.type === "FILE" ? (
+        <div className="mt-2 space-y-2">
+          <label className="block">
+            <input type="file" onChange={handleFileSelect} disabled={uploading}
+              className="sr-only" id={`file-upload-${item.url || Math.random()}`} />
+            <button type="button" onClick={() => document.getElementById(`file-upload-${item.url || Math.random()}`)?.click()}
+              disabled={uploading}
+              className={`min-h-touch w-full rounded-xl border-2 border-dashed ${uploading ? "border-slate-300 bg-slate-100 cursor-not-allowed" : "border-primary bg-white hover:border-navy"} px-4 py-3 text-center text-sm font-medium ${uploading ? "text-slate-400" : "text-primary"}`}>
+              {uploading ? "Uploading…" : "Choose file…"}
+            </button>
+          </label>
+          {item.url && (
+            <p className="text-xs font-mono text-slate-600 break-all">Uploaded: {item.url}</p>
+          )}
+        </div>
       ) : (
         <input value={item.url} onChange={(e) => onChange({ ...item, url: e.target.value })} inputMode="url"
           placeholder="https://… (screenshot, doc, file link)" spellCheck={false}
