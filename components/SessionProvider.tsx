@@ -27,7 +27,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<Status>("loading");
   const [busy, setBusy] = useState<null | { step: string }>(null);
   const [error, setError] = useState<string | null>(null);
-  const adapter = useMemo(() => pickAdapter(), []);
+  const [adapterLabel, setAdapterLabel] = useState<string>("");
+
+  // Pick adapter client-side only to avoid hydration mismatch
+  useEffect(() => {
+    setAdapterLabel(pickAdapter().label);
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -44,15 +49,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { refresh(); }, [refresh]);
 
   const signIn = useCallback(async () => {
-    setError(null);
-    // Re-pick at click time: inside Nimiq Pay the injected provider can arrive
-    // after first render, so a memoized choice could miss it.
-    const liveAdapter = pickAdapter();
-    try {
-      if (!liveAdapter.isAvailable())
-        throw new WalletError("WALLET_UNAVAILABLE", "No wallet found. Open this page inside the Nimiq Pay app, or connect via Nimiq Hub in a regular browser.");
-      setBusy({ step: `Opening ${liveAdapter.label}…` });
-      const { walletAddress } = await liveAdapter.connect();
+      setError(null);
+      // Re-pick at click time: inside Nimiq Pay the injected provider can arrive
+      // after first render, so a memoized choice could miss it.
+      const liveAdapter = pickAdapter();
+      try {
+        if (!liveAdapter.isAvailable())
+          throw new WalletError("WALLET_UNAVAILABLE", "No wallet found. Open this page inside the Nimiq Pay app, or connect via Nimiq Hub in a regular browser.");
+        setBusy({ step: `Opening ${liveAdapter.label}…` });
+        const { walletAddress } = await liveAdapter.connect();
 
       setBusy({ step: "Preparing sign-in…" });
       const nRes = await fetch("/api/auth/nonce", {
@@ -115,7 +120,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [status, signIn]);
 
   const value: SessionCtx = {
-    user, status, busy, error, adapterLabel: adapter.label,
+    user, status, busy, error, adapterLabel,
     signIn, signOut, clearError: () => setError(null),
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

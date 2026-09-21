@@ -16,7 +16,7 @@ function ItemEditor({ item, onChange, onRemove, index }: { item: Item; onChange:
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/uploads", { method: "POST", body: formData });
+      const res = await fetch("/api/uploads", { method: "POST", body: formData, credentials: "include" });
       const data = await res.json();
       if (!data.ok) throw new Error(data.message ?? "Upload failed");
       onChange({ ...item, type: "FILE", url: data.url });
