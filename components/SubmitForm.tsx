@@ -4,8 +4,9 @@ import { api } from "@/lib/ui/bounty";
 
 interface Item { type: "TEXT" | "LINK" | "IMAGE" | "FILE"; text: string; url: string }
 
-function ItemEditor({ item, onChange, onRemove }: { item: Item; onChange: (i: Item) => void; onRemove: () => void }) {
+function ItemEditor({ item, onChange, onRemove, index }: { item: Item; onChange: (i: Item) => void; onRemove: () => void; index: number }) {
   const [uploading, setUploading] = useState(false);
+  const fileInputId = `file-upload-${index}`;
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -23,7 +24,6 @@ function ItemEditor({ item, onChange, onRemove }: { item: Item; onChange: (i: It
       alert(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
-      // Reset input so same file can be re-selected
       e.target.value = "";
     }
   };
@@ -46,8 +46,8 @@ function ItemEditor({ item, onChange, onRemove }: { item: Item; onChange: (i: It
         <div className="mt-2 space-y-2">
           <label className="block">
             <input type="file" onChange={handleFileSelect} disabled={uploading}
-              className="sr-only" id={`file-upload-${item.url || Math.random()}`} />
-            <button type="button" onClick={() => document.getElementById(`file-upload-${item.url || Math.random()}`)?.click()}
+              className="sr-only" id={fileInputId} />
+            <button type="button" onClick={() => document.getElementById(fileInputId)?.click()}
               disabled={uploading}
               className={`min-h-touch w-full rounded-xl border-2 border-dashed ${uploading ? "border-slate-300 bg-slate-100 cursor-not-allowed" : "border-primary bg-white hover:border-navy"} px-4 py-3 text-center text-sm font-medium ${uploading ? "text-slate-400" : "text-primary"}`}>
               {uploading ? "Uploading…" : "Choose file…"}
@@ -111,7 +111,7 @@ export function SubmitForm({ publicId, header, onSubmitted }: { publicId: string
       <div className="space-y-2">
         <p className="text-sm font-bold text-navy">Add proof <span className="font-normal text-slate2">(preview — the creator sees this)</span></p>
         {proof.map((it, i) => (
-          <ItemEditor key={i} item={it} onChange={(n) => setProof(proof.map((p, j) => (j === i ? n : p)))} onRemove={() => setProof(proof.filter((_, j) => j !== i))} />
+          <ItemEditor key={i} item={it} index={i} onChange={(n) => setProof(proof.map((p, j) => (j === i ? n : p)))} onRemove={() => setProof(proof.filter((_, j) => j !== i))} />
         ))}
         <button type="button" onClick={() => proof.length < 20 && setProof([...proof, blank()])} className="text-sm font-bold text-primary">＋ Add proof</button>
       </div>
@@ -123,7 +123,7 @@ export function SubmitForm({ publicId, header, onSubmitted }: { publicId: string
       {lockFinal && (
         <div className="space-y-2">
           {finalItems.map((it, i) => (
-            <ItemEditor key={i} item={it} onChange={(n) => setFinalItems(finalItems.map((p, j) => (j === i ? n : p)))} onRemove={() => setFinalItems(finalItems.filter((_, j) => j !== i))} />
+            <ItemEditor key={i} item={it} index={i} onChange={(n) => setFinalItems(finalItems.map((p, j) => (j === i ? n : p)))} onRemove={() => setFinalItems(finalItems.filter((_, j) => j !== i))} />
           ))}
           <button type="button" onClick={() => finalItems.length < 20 && setFinalItems([...finalItems, blank()])} className="text-sm font-bold text-primary">＋ Add deliverable</button>
         </div>
